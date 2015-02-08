@@ -39,6 +39,22 @@ insertCSR csr =
      put $ hs & signingRequests %~ (IxSet.insert csr)
      return csr
 
+changeCSRStatus :: CSRID -> CSRStatus -> Update HerbertState (Maybe CSR)
+changeCSRStatus csrId newStatus = do
+    state <- get
+    let requests = state ^. signingRequests
+        maybeCsr = do
+          oldCsr <- getOne $ requests @= csrId
+          return $ (oldCsr & requestStatus .~ newStatus)
+    case maybeCsr of
+      Nothing    -> return Nothing
+      (Just csr) -> do
+        put $ state & signingRequests .~ (updateIx csrId csr requests)
+        return maybeCsr
+
+rejectCSR :: CSRID -> Update HerbertState (Maybe CSR)
+rejectCSR csrId = changeCSRStatus csrId Rejected
+
 -- Queries
 
 retrieveCSR :: CSRID -> Query HerbertState (Maybe CSR)
@@ -61,6 +77,7 @@ listCSRByStatus status = do
 
 $(makeAcidic ''HerbertState
   [ 'insertCSR
+  , 'rejectCSR
   , 'retrieveCSR
   , 'listCSR
   , 'listCSRByStatus ])

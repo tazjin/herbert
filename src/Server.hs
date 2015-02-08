@@ -24,6 +24,7 @@ server state config = scotty scottyPort $ do
   get  "/csr/all" $ handleListRequests state
   get  "/csr/pending" $ handleListByStatus state Pending
   get  "/csr/rejected" $ handleListByStatus state Rejected
+  get  "/csr/reject/:csrid" $ handleRejectCSR state
   get  "/csr/:csrid" $ handlePollCSRState state
   where
     scottyPort = port config
@@ -63,3 +64,11 @@ handleListByStatus :: AppState -> CSRStatus -> ActionM ()
 handleListByStatus state status = do
   csrList <- query' state $ ListCSRByStatus status
   json csrList
+
+handleRejectCSR :: AppState -> ActionM ()
+handleRejectCSR state = do
+  csrId <- param "csrid"
+  updatedCsr <- update' state $ RejectCSR csrId
+  case updatedCsr of
+    Nothing -> status notFound404
+    (Just csr) -> json csr
