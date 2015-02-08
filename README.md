@@ -1,6 +1,8 @@
 Herbert
 =======
 
+[![Build Status](https://travis-ci.org/tazjin/herbert.svg)](https://travis-ci.org/tazjin/herbert)
+
 Herbert is a simple signing server for cloud environments in which newly created servers need the ability to provision their own certificates signed by an internal CA. This is intended for use with Ansible and on an environment like Google Compute Engine.
 
 **A note on naming**: I wanted to name this project something related to guarding, and Kerberos came to mind. However, the name Kerberos is already associated with some pretty terrible things in the IT world. A combination of thinking about the name Kerberos and the Haskellism of starting project names with 'H' resulted in the name Herbert.
