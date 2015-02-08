@@ -46,13 +46,21 @@ retrieveCSR csrId =
   do state <- ask
      return $ getOne $ (state ^. signingRequests) @= csrId
 
-listCSRByState :: CSRState -> Query HerbertState [CSR]
-listCSRByState csrState =
-  do state <- ask
-     let requests = (state ^. signingRequests) @= csrState
-     return $ IxSet.toDescList (Proxy :: Proxy UTCTime) requests
+-- | List all CSRs
+listCSR :: Query HerbertState [CSR]
+listCSR = do
+    state <- ask
+    return $ IxSet.toDescList (Proxy :: Proxy UTCTime) $ state ^. signingRequests
+
+-- | List CSRs filtered by state
+listCSRByStatus :: CSRStatus -> Query HerbertState [CSR]
+listCSRByStatus status = do
+    state <- ask
+    let requests = (state ^. signingRequests) @= status
+    return $ IxSet.toDescList (Proxy :: Proxy UTCTime) requests
 
 $(makeAcidic ''HerbertState
   [ 'insertCSR
   , 'retrieveCSR
-  , 'listCSRByState ])
+  , 'listCSR
+  , 'listCSRByStatus ])

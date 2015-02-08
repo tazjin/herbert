@@ -18,10 +18,12 @@ import           Storage
 import           Types.CSR
 import           Web.Scotty
 
-
 server :: AppState -> Config -> IO ()
 server state config = scotty scottyPort $ do
   post "/csr" $ handlePostCSR state
+  get  "/csr/all" $ handleListRequests state
+  get  "/csr/pending" $ handleListByStatus state Pending
+  get  "/csr/rejected" $ handleListByStatus state Rejected
   get  "/csr/:csrid" $ handlePollCSRState state
   where
     scottyPort = port config
@@ -48,4 +50,16 @@ handlePollCSRState state = do
   maybeCsr <- query' state $ RetrieveCSR csrId
   case maybeCsr of
     Nothing -> status notFound404
-    (Just csr) -> text $ LT.pack $ show $ csr ^. requestState
+    (Just csr) -> text $ LT.pack $ show $ csr ^. requestStatus
+
+-- * Administration functions
+
+handleListRequests :: AppState -> ActionM ()
+handleListRequests state = do
+  csrList <- query' state ListCSR
+  json csrList
+
+handleListByStatus :: AppState -> CSRStatus -> ActionM ()
+handleListByStatus state status = do
+  csrList <- query' state $ ListCSRByStatus status
+  json csrList

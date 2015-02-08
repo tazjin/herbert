@@ -10,7 +10,7 @@ import           Types.CSR
 -- testing
 import           Data.Maybe           (fromJust)
 
-type CSRBuilder = CSRID -> RequestingHost -> UTCTime -> CSRState -> CSR
+type CSRBuilder = CSRID -> RequestingHost -> UTCTime -> CSRStatus -> CSR
 
 parseCSR :: Text -> IO CSRBuilder
 parseCSR csrBody = do
