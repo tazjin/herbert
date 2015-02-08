@@ -13,8 +13,15 @@ import           Data.IxSet          as IxSet
 import           Data.SafeCopy
 import           Data.Text           (Text)
 import           Data.Time           (UTCTime)
+import           Data.UUID           (UUID)
 
 -- * IxSet index types
+newtype CSRID = CSRID { getCSRID :: UUID }
+    deriving (Eq, Ord, Data, Typeable, Show)
+
+$(deriveSafeCopy 0 'base ''UUID)
+$(deriveSafeCopy 0 'base ''CSRID)
+
 newtype CommonName = CommonName Text
     deriving (Eq, Ord, Data, Typeable, Show)
 
@@ -34,7 +41,8 @@ $(deriveSafeCopy 0 'base ''RequestingHost)
 
 -- | Certificate signing request, including information about the requester.
 data CSR = CSR {
-    _commonName       :: CommonName
+    _csrId            :: CSRID -- ^ UUID that identifies this CSR for Herbert
+  , _commonName       :: CommonName
   , _organizationName :: OrganizationName
   , _requestingHost   :: RequestingHost -- ^ Not initially part of the CSR, added by Herbert
   , _requestDate      :: UTCTime

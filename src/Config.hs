@@ -1,12 +1,17 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 -- | Various settings for Herbert
 module Config where
 
-import           Control.Lens
+import           Control.Applicative (pure, (<$>), (<*>))
+import           Options
 
 data Config = Config {
-  _port :: Int
+  port     :: Int,
+  stateDir :: String
 }
 
-makeLenses ''Config
+instance Options Config where
+  defineOptions = pure Config
+    <*> simpleOption "port" 1212
+        "Port to run on. Default is 1212"
+    <*> simpleOption "statedir" "/tmp/herbert"
+        "Directory to keep state files"
