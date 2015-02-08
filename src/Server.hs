@@ -2,38 +2,49 @@ module Server where
 
 import           Config
 import           Control.Lens
-import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.IO.Class    (liftIO)
 import           CSRUtils
 import           Data.Acid
-import           Data.Acid.Advanced     (query', update')
-import           Data.Monoid            (mconcat)
-import           Data.Text              (pack)
+import           Data.Acid.Advanced        (query', update')
+import           Data.Monoid               (mconcat)
+import           Data.Text                 (pack)
+import qualified Data.Text.Lazy            as LT
 import           Data.Time
 import           Data.UUID.V4
-import           Network.Wai            (remoteHost)
-import           Network.Wai.Logger     (showSockAddr)
+import           Network.HTTP.Types.Status (notFound404)
+import           Network.Wai               (remoteHost)
+import           Network.Wai.Logger        (showSockAddr)
 import           Storage
 import           Web.Scotty
 
--- testing
-import qualified Data.Text.Lazy         as LT
 
-server :: AcidState HerbertState -> Config -> IO ()
+server :: AppState -> Config -> IO ()
 server state config = scotty scottyPort $ do
   post "/csr" $ handlePostCSR state
+  get  "/csr/:csrid" $ handlePollCSRState state
   where
     scottyPort = port config
 
-handlePostCSR :: AcidState HerbertState -> ActionM ()
+-- Posting CSRs
+handlePostCSR :: AppState -> ActionM ()
 handlePostCSR state = do
-  now <- liftIO getCurrentTime
-  csrId <- liftIO (fmap CSRID nextRandom)
-  csrBody <- param "csr"
+  now        <- liftIO getCurrentTime
+  csrId      <- liftIO (fmap CSRID nextRandom)
+  csrBody    <- param "csr"
   csrBuilder <- liftIO (parseCSR csrBody)
-  clientIP <- fmap (showSockAddr . remoteHost) request
-  let csr = csrBuilder csrId (RequestingHost $ pack clientIP) now
+  clientIP   <- fmap (showSockAddr . remoteHost) request
+  let csr = csrBuilder csrId (RequestingHost $ pack clientIP) now Pending
   storeCSR state csr
   text $ LT.pack $ show $ getCSRID csrId
 
-storeCSR :: AcidState HerbertState -> CSR -> ActionM CSR
+storeCSR :: AppState -> CSR -> ActionM CSR
 storeCSR state csr = update' state $ InsertCSR csr
+
+-- Polling CSRs
+handlePollCSRState :: AppState -> ActionM ()
+handlePollCSRState state = do
+  csrId    <- param "csrid"
+  maybeCsr <- query' state $ RetrieveCSR csrId
+  case maybeCsr of
+    Nothing -> status notFound404
+    (Just csr) -> text $ LT.pack $ show $ csr ^. requestState

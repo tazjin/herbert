@@ -11,7 +11,7 @@ import           Storage
 -- testing
 import           Data.Maybe           (fromJust)
 
-type CSRBuilder = CSRID -> RequestingHost -> UTCTime -> CSR
+type CSRBuilder = CSRID -> RequestingHost -> UTCTime -> CSRState -> CSR
 
 parseCSR :: Text -> IO CSRBuilder
 parseCSR csrBody = do
@@ -26,6 +26,6 @@ getCsrBuilder :: [(String, String)] -> String -> Maybe CSRBuilder
 getCsrBuilder subjectName body = do
   cn <- lookup "commonName" subjectName
   on <- lookup "organizationName" subjectName
-  Just (\i r t -> CSR i (CommonName $ TS.pack cn)
-                  (OrganizationName $ TS.pack on)
-                  r t body)
+  Just (\i r t s -> CSR i (CommonName $ TS.pack cn)
+                   (OrganizationName $ TS.pack on)
+                   r t s body)
