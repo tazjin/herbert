@@ -15,6 +15,7 @@ import           Network.HTTP.Types.Status (notFound404)
 import           Network.Wai               (remoteHost)
 import           Network.Wai.Logger        (showSockAddr)
 import           Storage
+import           Types.CSR
 import           Web.Scotty
 
 

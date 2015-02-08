@@ -1,12 +1,11 @@
 module CSRUtils where
 
---import           OpenSSL.X509
 import qualified Data.Text            as TS
 import           Data.Text.Lazy
 import           Data.Time            (UTCTime)
 import           OpenSSL.PEM
 import           OpenSSL.X509.Request
-import           Storage
+import           Types.CSR
 
 -- testing
 import           Data.Maybe           (fromJust)
@@ -22,7 +21,9 @@ parseCSR csrBody = do
   where
     csrBodyString = unpack csrBody
 
-getCsrBuilder :: [(String, String)] -> String -> Maybe CSRBuilder
+getCsrBuilder :: [(String, String)] -- ^ Key value pair from certificate info
+              -> String             -- ^ CSR body
+              -> Maybe CSRBuilder
 getCsrBuilder subjectName body = do
   cn <- lookup "commonName" subjectName
   on <- lookup "organizationName" subjectName
