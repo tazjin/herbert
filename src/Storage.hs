@@ -13,18 +13,20 @@ import           Data.Data            (Data, Typeable)
 import           Data.IxSet           as IxSet
 import           Data.SafeCopy
 import           Data.Time            (UTCTime)
+import           Types.Certificate
 import           Types.CSR
 
 -- | State of the application to store in acid-state
 data HerbertState = HerbertState {
-  _signingRequests :: IxSet CSR
+    _signingRequests :: IxSet CSR
+  , _certificates    :: IxSet Certificate
 } deriving (Data, Typeable)
 
 makeLenses ''HerbertState
 $(deriveSafeCopy 0 'base ''HerbertState)
 
 emptyState :: HerbertState
-emptyState = HerbertState { _signingRequests = empty }
+emptyState = HerbertState { _signingRequests = empty, _certificates = empty }
 
 -- Type synonym to shorten some things
 type AppState = AcidState HerbertState
@@ -62,6 +64,10 @@ retrieveCSR csrId =
   do state <- ask
      return $ getOne $ (state ^. signingRequests) @= csrId
 
+retrieveCert :: CertID -> Query HerbertState (Maybe Certificate)
+retrieveCert certId =
+  ask >>= \state -> return $ getOne $ (state ^. certificates) @= certId
+
 -- | List all CSRs
 listCSR :: Query HerbertState [CSR]
 listCSR = do
@@ -79,5 +85,6 @@ $(makeAcidic ''HerbertState
   [ 'insertCSR
   , 'rejectCSR
   , 'retrieveCSR
+  , 'retrieveCert
   , 'listCSR
   , 'listCSRByStatus ])

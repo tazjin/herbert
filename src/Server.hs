@@ -15,6 +15,7 @@ import           Network.HTTP.Types.Status (notFound404)
 import           Network.Wai               (remoteHost)
 import           Network.Wai.Logger        (showSockAddr)
 import           Storage
+import           Types.Certificate
 import           Types.CSR
 import           Web.Scotty
 
@@ -26,6 +27,7 @@ server state config = scotty scottyPort $ do
   get  "/csr/rejected" $ handleListByStatus state Rejected
   get  "/csr/reject/:csrid" $ handleRejectCSR state
   get  "/csr/:csrid" $ handlePollCSRState state
+  get  "/cert/:certid" $ handleGetCertificate state
   where
     scottyPort = config ^. port
 
@@ -52,6 +54,15 @@ handlePollCSRState state = do
   case maybeCsr of
     Nothing -> status notFound404
     (Just csr) -> text $ LT.pack $ show $ csr ^. requestStatus
+
+-- Retrieving certificates
+handleGetCertificate :: AppState -> ActionM ()
+handleGetCertificate state = do
+  certId    <- param "certid"
+  maybeCert <- query' state $ RetrieveCert certId
+  case maybeCert of
+    Nothing    -> status notFound404
+    (Just crt) -> json crt
 
 -- * Administration functions
 

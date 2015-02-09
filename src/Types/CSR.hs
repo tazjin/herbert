@@ -1,34 +1,31 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving    #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TemplateHaskell            #-}
 
 -- | This module contains types and instances specific to CSRs
 module Types.CSR where
 
-import Data.Aeson
-import           Data.UUID            (UUID, fromString)
-import           Data.Data            (Data, Typeable)
+import           Control.Lens   hiding (Indexable, (.=))
+import           Data.Aeson
+import           Data.Data      (Data, Typeable)
+import           Data.IxSet     as IxSet
 import           Data.SafeCopy
-import           Web.Scotty           (Parsable (..))
-import qualified Data.Text.Lazy       as LT
-import           Data.Text            (Text, pack)
-import           Data.Time            (UTCTime)
-import           Control.Lens         hiding (Indexable, (.=))
-import           Data.IxSet           as IxSet
+import           Data.Text      (Text, pack)
+import qualified Data.Text.Lazy as LT
+import           Data.Time      (UTCTime)
+import           Data.UUID      (UUID)
+import           Types.Common
+import           Web.Scotty     (Parsable (..))
 
 -- * IxSet index types
 newtype CSRID = CSRID { getCSRID :: UUID }
     deriving (Eq, Ord, Data, Typeable, Show)
 
-$(deriveSafeCopy 0 'base ''UUID)
 $(deriveSafeCopy 0 'base ''CSRID)
 
 -- CSR IDs need to be parsable from route captures
 instance Parsable CSRID where
-  parseParam routeId =
-    let maybeUUID = fromString $ LT.unpack routeId
-    in case maybeUUID of (Just id) -> Right $ CSRID id
-                         Nothing   -> Left "ID not valid UUID"
+  parseParam = fmap CSRID . parseParam
 
 newtype CommonName = CommonName Text
     deriving (Eq, Ord, Data, Typeable, Show, ToJSON)
