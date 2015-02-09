@@ -27,7 +27,7 @@ server state config = scotty scottyPort $ do
   get  "/csr/reject/:csrid" $ handleRejectCSR state
   get  "/csr/:csrid" $ handlePollCSRState state
   where
-    scottyPort = port config
+    scottyPort = config ^. port
 
 -- Posting CSRs
 handlePostCSR :: AppState -> ActionM ()

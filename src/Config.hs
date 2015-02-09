@@ -1,17 +1,35 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 -- | Various settings for Herbert
 module Config where
 
 import           Control.Applicative (pure, (<$>), (<*>))
+import           Control.Lens        hiding ((.=))
+import qualified Data.ByteString     as BS
+import           Data.Yaml
 import           Options
 
 data Config = Config {
-  port     :: Int,
-  stateDir :: String
-}
+  _port     :: Int,
+  _stateDir :: String,
+  _caCert   :: FilePath,
+  _caKey    :: FilePath
+} deriving (Show)
 
-instance Options Config where
-  defineOptions = pure Config
-    <*> simpleOption "port" 1212
-        "Port to run on. Default is 1212"
-    <*> simpleOption "statedir" "/tmp/herbert"
-        "Directory to keep state files"
+makeLenses ''Config
+
+instance ToJSON Config where
+    toJSON config = object [ "port" .= (config ^. port)
+                           , "stateDir" .= (config ^. stateDir)
+                           , "caCert" .= (config ^. caCert)
+                           , "caKey" .= (config ^. caKey) ]
+
+instance FromJSON Config where
+    parseJSON (Object v) =
+      Config <$> v .: "port"
+             <*> v .: "stateDir"
+             <*> v .: "caCert"
+             <*> v .: "caKey"
+
+loadConfig :: FilePath -> IO (Either String Config)
+loadConfig = fmap decodeEither . BS.readFile
