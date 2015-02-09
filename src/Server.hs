@@ -19,8 +19,8 @@ import           Types.Certificate
 import           Types.CSR
 import           Web.Scotty
 
-server :: AppState -> Config -> IO ()
-server state config = scotty scottyPort $ do
+server :: Config -> AppState -> IO ()
+server config state = scotty scottyPort $ do
   post "/csr"               $ handlePostCSR state
   get  "/csr/all"           $ handleListRequests state
   get  "/csr/pending"       $ handleListByStatus state Pending
@@ -28,7 +28,6 @@ server state config = scotty scottyPort $ do
   get  "/csr/reject/:csrid" $ handleRejectCSR state
   get  "/csr/:csrid"        $ handlePollCSRState state
   get  "/cert/:certid"      $ handleGetCertificate state
-  get  "/sign/:csrid"       $ handleSigning state
   where
     scottyPort = config ^. port
 

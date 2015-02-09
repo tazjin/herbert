@@ -37,4 +37,4 @@ runHerbert :: Config -> IO ()
 runHerbert config =
   bracket (loadState config)
           createCheckpointAndClose
-          (\acid -> server acid config)
+          (server config)
