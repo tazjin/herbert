@@ -19,10 +19,10 @@ data Config = Config {
 makeLenses ''Config
 
 instance ToJSON Config where
-    toJSON config = object [ "port" .= (config ^. port)
+    toJSON config = object [ "port"     .= (config ^. port)
                            , "stateDir" .= (config ^. stateDir)
-                           , "caCert" .= (config ^. caCert)
-                           , "caKey" .= (config ^. caKey) ]
+                           , "caCert"   .= (config ^. caCert)
+                           , "caKey"    .= (config ^. caKey) ]
 
 instance FromJSON Config where
     parseJSON (Object v) =

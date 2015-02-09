@@ -43,5 +43,5 @@ instance ToJSON CertID where
     toJSON = toJSON . pack . show . getCertID
 
 instance ToJSON Certificate where
-    toJSON cert = object [ "id" .= (cert ^. certId)
+    toJSON cert = object [ "id"   .= (cert ^. certId)
                          , "cert" .= (cert ^. certBody) ]

@@ -81,8 +81,8 @@ instance ToJSON CSRStatus where
     toJSON = toJSON . pack . show
 
 instance ToJSON CSR where
-    toJSON csr = object [ "id" .= (csr ^. requestId)
-                        , "commonName" .= (csr ^. commonName)
+    toJSON csr = object [ "id"             .= (csr ^. requestId)
+                        , "commonName"     .= (csr ^. commonName)
                         , "requestingHost" .= (csr ^. requestingHost)
-                        , "requestDate" .= (csr ^. requestDate)
-                        , "requestStatus" .= (csr ^. requestStatus) ]
+                        , "requestDate"    .= (csr ^. requestDate)
+                        , "requestStatus"  .= (csr ^. requestStatus) ]

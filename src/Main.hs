@@ -30,8 +30,11 @@ main = runCommand $ \options _ -> do
       (Left err)   -> putStrLn ("Error reading config: " ++ err) >> exitFailure
       (Right conf) -> runHerbert conf
 
+loadState :: Config -> IO AppState
+loadState config = openLocalStateFrom (config ^. stateDir) emptyState
+
 runHerbert :: Config -> IO ()
 runHerbert config =
-  bracket (openLocalStateFrom (config ^. stateDir) emptyState)
+  bracket (loadState config)
           createCheckpointAndClose
           (\acid -> server acid config)
