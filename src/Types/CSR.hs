@@ -57,8 +57,8 @@ data CSR = CSR {
     _requestId        :: CSRID -- ^ UUID that identifies this CSR for Herbert
   , _commonName       :: CommonName
   , _organizationName :: OrganizationName
-  , _requestingHost   :: RequestingHost -- ^ Time that Herbert received CSR
-  , _requestDate      :: UTCTime
+  , _requestingHost   :: RequestingHost
+  , _requestDate      :: UTCTime -- ^ Time that Herbert received CSR
   , _requestStatus    :: CSRStatus
   , _requestBody      :: String -- ^ Consumed from String type by OpenSSL
 } deriving (Eq, Ord, Data, Typeable, Show)

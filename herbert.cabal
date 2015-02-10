@@ -62,4 +62,7 @@ test-suite herbert-test
                  test-framework,
                  test-framework-hunit,
                  acid-state,
-                 lens
+                 lens,
+                 old-locale,
+                 time,
+                 ixset
