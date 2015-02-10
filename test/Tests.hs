@@ -1,7 +1,7 @@
 module Main where
 
 import           Herbert.Storage.Test
-import           Test.Framework       (defaultMain)
+import           Test.Tasty
 
 main :: IO ()
-main = defaultMain [storageSuite]
+main = defaultMain $ testGroup "Herbert tests" [storageSuite]

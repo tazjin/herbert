@@ -10,16 +10,15 @@ import           Data.Acid.Memory
 import           Data.IxSet
 import           Data.Time
 import           Storage
-import           System.Locale                  (defaultTimeLocale)
-import           Test.Framework                 (Test (..), testGroup)
-import           Test.Framework.Providers.HUnit
-import           Test.HUnit                     hiding (Test)
+import           System.Locale      (defaultTimeLocale)
+import           Test.Tasty
+import           Test.Tasty.HUnit
 import           Types.CA
 import           Types.Certificate
 import           Types.Common
 import           Types.CSR
 
-storageSuite :: Test
+storageSuite :: TestTree
 storageSuite = testGroup "Acid-state storage tests"
     [ testCase "Fetching CA should increase serial number" testIncSerialNumber
     , testCase "Rejecting CSR should set state to rejected" testRejectCSR
