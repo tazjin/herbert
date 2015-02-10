@@ -13,6 +13,7 @@ import           Data.Data            (Data, Typeable)
 import           Data.IxSet           as IxSet
 import           Data.SafeCopy
 import           Data.Time            (UTCTime)
+import           Types.CA
 import           Types.Certificate
 import           Types.CSR
 
@@ -20,13 +21,16 @@ import           Types.CSR
 data HerbertState = HerbertState {
     _signingRequests :: IxSet CSR
   , _certificates    :: IxSet Certificate
+  , _certAuthority   :: CertificateAuthority
 } deriving (Data, Typeable)
 
 makeLenses ''HerbertState
 $(deriveSafeCopy 0 'base ''HerbertState)
 
-emptyState :: HerbertState
-emptyState = HerbertState { _signingRequests = empty, _certificates = empty }
+emptyState :: CertificateAuthority -> HerbertState
+emptyState ca = HerbertState { _signingRequests = empty
+                             , _certificates = empty
+                             , _certAuthority = ca }
 
 -- Type synonym to shorten some things
 type AppState = AcidState HerbertState
@@ -57,6 +61,14 @@ changeCSRStatus csrId newStatus = do
 rejectCSR :: CSRID -> Update HerbertState (Maybe CSR)
 rejectCSR csrId = changeCSRStatus csrId Rejected
 
+-- | Returns the next CA serial number *and* updates it in the state.
+getNextSerialNumber :: Update HerbertState SerialNumber
+getNextSerialNumber = do
+     state <- get
+     let newSerial = (+) 1 $ (state ^. certAuthority) ^. caSerialNumber
+     put $ state & (certAuthority . caSerialNumber) .~ newSerial
+     return newSerial
+
 -- Queries
 
 retrieveCSR :: CSRID -> Query HerbertState (Maybe CSR)
@@ -67,6 +79,9 @@ retrieveCSR csrId =
 retrieveCert :: CertID -> Query HerbertState (Maybe Certificate)
 retrieveCert certId =
   ask >>= \state -> return $ getOne $ (state ^. certificates) @= certId
+
+retrieveCA :: Query HerbertState CertificateAuthority
+retrieveCA = ask >>= \state -> return $ state ^. certAuthority
 
 -- | List all CSRs
 listCSR :: Query HerbertState [CSR]
@@ -84,7 +99,9 @@ listCSRByStatus status = do
 $(makeAcidic ''HerbertState
   [ 'insertCSR
   , 'rejectCSR
+  , 'getNextSerialNumber
   , 'retrieveCSR
   , 'retrieveCert
+  , 'retrieveCA
   , 'listCSR
   , 'listCSRByStatus ])

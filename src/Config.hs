@@ -13,7 +13,8 @@ data Config = Config {
   _port     :: Int,
   _stateDir :: String,
   _caCert   :: FilePath,
-  _caKey    :: FilePath
+  _caKey    :: FilePath,
+  _caPass   :: String
 } deriving (Show)
 
 makeLenses ''Config
@@ -22,7 +23,8 @@ instance ToJSON Config where
     toJSON config = object [ "port"     .= (config ^. port)
                            , "stateDir" .= (config ^. stateDir)
                            , "caCert"   .= (config ^. caCert)
-                           , "caKey"    .= (config ^. caKey) ]
+                           , "caKey"    .= (config ^. caKey)
+                           , "caPass"   .= (config ^. caPass)]
 
 instance FromJSON Config where
     parseJSON (Object v) =
@@ -30,6 +32,7 @@ instance FromJSON Config where
              <*> v .: "stateDir"
              <*> v .: "caCert"
              <*> v .: "caKey"
+             <*> v .: "caPass"
 
 loadConfig :: FilePath -> IO (Either String Config)
 loadConfig = fmap decodeEither . BS.readFile

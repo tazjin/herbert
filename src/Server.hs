@@ -14,13 +14,14 @@ import           Data.UUID.V4
 import           Network.HTTP.Types.Status (notFound404)
 import           Network.Wai               (remoteHost)
 import           Network.Wai.Logger        (showSockAddr)
+import           OpenSSL.EVP.PKey
 import           Storage
 import           Types.Certificate
 import           Types.CSR
 import           Web.Scotty
 
-server :: Config -> AppState -> IO ()
-server config state = scotty scottyPort $ do
+server :: Config -> SomeKeyPair -> AppState -> IO ()
+server config key state = scotty scottyPort $ do
   post "/csr"               $ handlePostCSR state
   get  "/csr/all"           $ handleListRequests state
   get  "/csr/pending"       $ handleListByStatus state Pending
