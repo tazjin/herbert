@@ -5,17 +5,18 @@
 -- | This module contains types and instances specific to CSRs
 module Types.CSR where
 
-import           Control.Lens   hiding (Indexable, (.=))
+import           Control.Lens      hiding (Indexable, (.=))
 import           Data.Aeson
-import           Data.Data      (Data, Typeable)
-import           Data.IxSet     as IxSet
+import           Data.Data         (Data, Typeable)
+import           Data.IxSet        as IxSet
 import           Data.SafeCopy
-import           Data.Text      (Text, pack)
-import qualified Data.Text.Lazy as LT
-import           Data.Time      (UTCTime)
-import           Data.UUID      (UUID)
+import           Data.Text         (Text, pack)
+import qualified Data.Text.Lazy    as LT
+import           Data.Time         (UTCTime)
+import           Data.UUID         (UUID)
+import           Types.Certificate
 import           Types.Common
-import           Web.Scotty     (Parsable (..))
+import           Web.Scotty        (Parsable (..))
 
 -- * IxSet index types
 newtype CSRID = CSRID { getCSRID :: UUID }
@@ -46,7 +47,7 @@ $(deriveSafeCopy 0 'base ''RequestingHost)
 
 data CSRStatus = Pending
                | Rejected
-               | Signed UUID
+               | Signed CertID
   deriving (Eq, Ord, Data, Typeable, Show)
 
 $(deriveSafeCopy 0 'base ''CSRStatus)

@@ -40,10 +40,16 @@ type AppState = AcidState HerbertState
 -- Updates
 
 insertCSR :: CSR -> Update HerbertState CSR
-insertCSR csr =
-  do hs <- get
-     put $ hs & signingRequests %~ (IxSet.insert csr)
-     return csr
+insertCSR csr = do
+    state <- get
+    put $ state & signingRequests %~ (IxSet.insert csr)
+    return csr
+
+insertCertificate :: Certificate -> Update HerbertState Certificate
+insertCertificate cert = do
+    state <- get
+    put $ state & certificates %~ (IxSet.insert cert)
+    return cert
 
 changeCSRStatus :: CSRID -> CSRStatus -> Update HerbertState (Maybe CSR)
 changeCSRStatus csrId newStatus = do
@@ -61,13 +67,17 @@ changeCSRStatus csrId newStatus = do
 rejectCSR :: CSRID -> Update HerbertState (Maybe CSR)
 rejectCSR csrId = changeCSRStatus csrId Rejected
 
--- | Returns the next CA serial number *and* updates it in the state.
-getNextSerialNumber :: Update HerbertState SerialNumber
+setSignedCSR :: CSRID -> CertID -> Update HerbertState (Maybe CSR)
+setSignedCSR csrId certId = changeCSRStatus csrId $ Signed certId
+
+-- | Returns the CA with the next serial number.
+getNextSerialNumber :: Update HerbertState CertificateAuthority
 getNextSerialNumber = do
      state <- get
      let newSerial = (+) 1 $ (state ^. certAuthority) ^. caSerialNumber
-     put $ state & (certAuthority . caSerialNumber) .~ newSerial
-     return newSerial
+         newState  = state & (certAuthority . caSerialNumber) .~ newSerial
+     put newState
+     return $ newState ^. certAuthority
 
 -- Queries
 
@@ -98,7 +108,9 @@ listCSRByStatus status = do
 
 $(makeAcidic ''HerbertState
   [ 'insertCSR
+  , 'insertCertificate
   , 'rejectCSR
+  , 'setSignedCSR
   , 'getNextSerialNumber
   , 'retrieveCSR
   , 'retrieveCert
