@@ -21,7 +21,7 @@ type CSRBuilder = CSRID -> RequestingHost -> UTCTime -> CSRStatus -> CSR
 
 parseCSR :: Text -> IO CSRBuilder
 parseCSR csrBody = do
-  parsed <- readX509Req csrBodyString
+  parsed <- withOpenSSL $ readX509Req csrBodyString
   subjectName <- getSubjectName parsed True
   let maybeCsrBuilder = getCsrBuilder subjectName csrBodyString
   return $ fromJust maybeCsrBuilder
