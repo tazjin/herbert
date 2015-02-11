@@ -1,5 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Main where
+
+-- | This is really the Main module.
+module Herbert where
 
 import           Config
 import           Control.Applicative ((<$>), (<*>))
@@ -31,8 +33,8 @@ instance Options CLIOptions where
     <*> simpleOption "serial" 0
         "Current CA serial number (if running for the first time)."
 
-main :: IO ()
-main = runCommand $ \options _ -> do
+herbertMain :: IO ()
+herbertMain = runCommand $ \options _ -> do
   maybeConfig <- loadConfig $ options ^. configLocation
   case maybeConfig of
       (Left err)   -> putStrLn ("Error reading config: " ++ err) >> exitFailure
