@@ -12,6 +12,7 @@ import           OpenSSL.X509         hiding (getSerialNumber, getSubjectName)
 import           OpenSSL.X509.Request as Rq
 import           Types.CA
 import           Types.Certificate
+import           Types.Common
 import           Types.CSR
 
 -- testing
@@ -52,11 +53,12 @@ signCSR csr ca key = withOpenSSL $ do
   caCert  <- readX509 $ TS.unpack $ ca ^. caCertificate
   x509crt <- makeX509FromReq x509req caCert
   -- Fill in empty values
-  setSerialNumber x509crt $ getSerialNumber $ ca ^. caSerialNumber
+  let serialNumber = ca ^. caSerialNumber
+  setSerialNumber x509crt $ getSerialNumber serialNumber
   setNotBefore x509crt $ addUTCTime (-1) now
   setNotAfter x509crt $ addUTCTime (730 * 24 * 60 * 60) now
   -- Go!
   signX509 x509crt key Nothing
   certId <- fmap CertID nextRandom
   certPem <- writeX509 x509crt
-  return $ Certificate certId $ TS.pack certPem
+  return $ Certificate certId serialNumber $ TS.pack certPem

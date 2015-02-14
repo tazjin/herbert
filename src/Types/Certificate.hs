@@ -26,8 +26,9 @@ instance Parsable CertID where
   parseParam = fmap CertID . parseParam
 
 data Certificate = Certificate {
-    _certId   :: CertID
-  , _certBody :: Text
+    _certId     :: CertID
+  , _certSerial :: SerialNumber
+  , _certBody   :: Text
 } deriving (Eq, Ord, Data, Typeable, Show)
 
 makeLenses ''Certificate
@@ -43,5 +44,6 @@ instance ToJSON CertID where
     toJSON = toJSON . pack . show . getCertID
 
 instance ToJSON Certificate where
-    toJSON cert = object [ "id"   .= (cert ^. certId)
-                         , "cert" .= (cert ^. certBody) ]
+    toJSON cert = object [ "id"     .= (cert ^. certId)
+                         , "serial" .= (cert ^. certSerial)
+                         , "cert"   .= (cert ^. certBody) ]

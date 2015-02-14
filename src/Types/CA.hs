@@ -9,11 +9,7 @@ import           Control.Lens
 import           Data.Data     (Data, Typeable)
 import           Data.SafeCopy
 import           Data.Text     (Text)
-
-newtype SerialNumber = SerialNumber { getSerialNumber :: Integer }
-    deriving (Data, Typeable, Show, Num)
-
-$(deriveSafeCopy 0 'base ''SerialNumber)
+import           Types.Common
 
 data CertificateAuthority = CA {
     _caSerialNumber :: SerialNumber -- ^ Current CA serial number. Updated with every signing

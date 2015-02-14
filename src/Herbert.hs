@@ -18,6 +18,7 @@ import           Server
 import           Storage
 import           System.Exit         (exitFailure)
 import           Types.CA
+import           Types.Common
 
 data CLIOptions = CLIOptions {
     _configLocation  :: String
