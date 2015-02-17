@@ -22,16 +22,28 @@ import           Web.Scotty
 
 server :: Config -> SomeKeyPair -> AppState -> IO ()
 server config key state = scotty scottyPort $ do
-  post "/csr"               $ handlePostCSR state
-  get  "/csr/all"           $ handleListRequests state
-  get  "/csr/pending"       $ handleListByStatus state Pending
-  get  "/csr/rejected"      $ handleListByStatus state Rejected
-  get  "/csr/reject/:csrid" $ handleRejectCSR state
-  get  "/csr/sign/:csrid"   $ handleSignCertificate state key
-  get  "/csr/:csrid"        $ handlePollCSRState state
-  get  "/cert/:certid"      $ handleGetCertificate state
+  clientRoutes state
+  adminRoutes state key
   where
     scottyPort = config ^. port
+
+-- | Routes accessible by all clients under /
+clientRoutes :: AppState -> ScottyM ()
+clientRoutes state = do
+  post "/csr"          $ handlePostCSR state
+  get  "/csr/:csrid"   $ handlePollCSRState state
+  get  "/cert/:certid" $ handleGetCertificate state
+
+-- | Routes for administrators accessible under /admin
+--   These routes should be protected with client-certificate checks. Refer to
+--   the provided nginx configuration for an example.
+adminRoutes :: AppState -> SomeKeyPair -> ScottyM ()
+adminRoutes state key = do
+  get  "/admin/csr/all"           $ handleListRequests state
+  get  "/admin/csr/pending"       $ handleListByStatus state Pending
+  get  "/admin/csr/rejected"      $ handleListByStatus state Rejected
+  get  "/admin/csr/reject/:csrid" $ handleRejectCSR state
+  get  "/admin/csr/sign/:csrid"   $ handleSignCertificate state key
 
 -- Posting CSRs
 handlePostCSR :: AppState -> ActionM ()
