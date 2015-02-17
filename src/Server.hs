@@ -30,9 +30,9 @@ server config key state = scotty scottyPort $ do
 -- | Routes accessible by all clients under /
 clientRoutes :: AppState -> ScottyM ()
 clientRoutes state = do
-  post "/csr"          $ handlePostCSR state
-  get  "/csr/:csrid"   $ handlePollCSRState state
-  get  "/cert/:certid" $ handleGetCertificate state
+  post "/client/csr"          $ handlePostCSR state
+  get  "/client/csr/:csrid"   $ handlePollCSRState state
+  get  "/client/cert/:certid" $ handleGetCertificate state
 
 -- | Routes for administrators accessible under /admin
 --   These routes should be protected with client-certificate checks. Refer to
