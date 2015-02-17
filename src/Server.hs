@@ -55,19 +55,19 @@ handlePostCSR state = do
   clientIP   <- fmap (showSockAddr . remoteHost) request
   let csr = csrBuilder csrId (RequestingHost $ pack clientIP) now Pending
   storeCSR state csr
-  text $ LT.pack $ show $ getCSRID csrId
+  json csr
 
 storeCSR :: AppState -> CSR -> ActionM CSR
 storeCSR state csr = update' state $ InsertCSR csr
 
--- Polling CSRs
+-- Polling CSR status
 handlePollCSRState :: AppState -> ActionM ()
 handlePollCSRState state = do
   csrId    <- param "csrid"
   maybeCsr <- query' state $ RetrieveCSR csrId
   case maybeCsr of
     Nothing -> status notFound404
-    (Just csr) -> text $ LT.pack $ show $ csr ^. requestStatus
+    (Just csr) -> json $ csr ^. requestStatus
 
 -- Retrieving certificates
 handleGetCertificate :: AppState -> ActionM ()

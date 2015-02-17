@@ -79,7 +79,10 @@ instance ToJSON CSRID where
     toJSON = toJSON . pack . show . getCSRID
 
 instance ToJSON CSRStatus where
-    toJSON = toJSON . pack . show
+    toJSON Pending  = object [ "status" .= ("pending" :: Text) ]
+    toJSON Rejected = object [ "status" .= ("rejected" :: Text) ]
+    toJSON (Signed crtId) = object [ "status" .= ("signed" :: Text)
+                                   , "certificate" .= toJSON crtId]
 
 instance ToJSON CSR where
     toJSON csr = object [ "id"             .= (csr ^. requestId)
