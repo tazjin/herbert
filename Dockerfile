@@ -20,6 +20,6 @@ RUN cp /opt/herbert/dist/build/herbert-bin/herbert-bin /usr/bin/herbert && \
     cabal clean && rm -rf /opt/herbert/.cabal-sandbox
 
 VOLUME ["/etc/herbert.d", "/var/log/herbert"]
-
+EXPOSE 1212
 ENTRYPOINT ["/usr/bin/herbert"]
 CMD []
