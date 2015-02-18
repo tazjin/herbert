@@ -25,12 +25,12 @@ storageSuite = testGroup "Acid-state storage tests"
     , testCase "setSignedCSR should set state to signed" testSetSignedCSR ]
 
 -- | Test something with an in-memory acid-state
-acidTest :: forall event query result.
-         (UpdateEvent event, MethodState event ~ HerbertState,
-          QueryEvent query, MethodState query ~ HerbertState,
+acidTest :: forall state event query result.
+         (IsAcidic state, UpdateEvent event, MethodState event ~ state,
+          QueryEvent query, MethodState query ~ state,
           MethodResult query ~ result)
          => String           -- ^ Test description
-         -> HerbertState     -- ^ Initial state for test
+         -> state            -- ^ Initial state for test
          -> event            -- ^ Event to test
          -> query            -- ^ Query to check
          -> (result -> Bool) -- ^ Function to test query result
