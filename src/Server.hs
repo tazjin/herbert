@@ -14,25 +14,30 @@ import           Data.UUID.V4
 import           Network.HTTP.Types.Status
 import           Network.Wai               (remoteHost)
 import           Network.Wai.Logger        (showSockAddr)
+import           Notify
+import           Notify
 import           OpenSSL.EVP.PKey
 import           Storage
 import           Types.Certificate
 import           Types.CSR
 import           Web.Scotty
 
+type Notifier = CSR -> ActionM ()
+
 server :: Config -> SomeKeyPair -> AppState -> IO ()
 server config key state = scotty scottyPort $ do
-  clientRoutes state
+  let notify = notifyForCSR config
+  clientRoutes notify state
   adminRoutes state key
   where
     scottyPort = config ^. port
 
 -- | Routes accessible by all clients under /
-clientRoutes :: AppState -> ScottyM ()
-clientRoutes state = do
-  post "/client/csr"          $ handlePostCSR state
+clientRoutes :: Notifier -> AppState -> ScottyM ()
+clientRoutes notify state = do
+  post "/client/csr"          $ handlePostCSR notify state
   get  "/client/csr/:csrid"   $ handlePollCSRState state
-  get  "/client/cert/:certid" $ handleGetCertificate state
+  get  "/client/cert/:fcertid" $ handleGetCertificate state
 
 -- | Routes for administrators accessible under /admin
 --   These routes should be protected with client-certificate checks. Refer to
@@ -50,8 +55,8 @@ serveError :: Status -> Text -> ActionM ()
 serveError s t = status s >> json t
 
 -- Posting CSRs
-handlePostCSR :: AppState -> ActionM ()
-handlePostCSR state = do
+handlePostCSR :: Notifier -> AppState -> ActionM ()
+handlePostCSR notify state = do
   now             <- liftIO getCurrentTime
   csrId           <- liftIO (fmap CSRID nextRandom)
   csrBody         <- param "csr"
@@ -63,6 +68,7 @@ handlePostCSR state = do
       let csr = builder csrId (RequestingHost $ pack clientIP) now Pending
       storeCSR state csr
       status created201
+      notify csr
       json csr
 
 storeCSR :: AppState -> CSR -> ActionM CSR

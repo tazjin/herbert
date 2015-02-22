@@ -28,7 +28,7 @@ $(deriveSafeCopy 0 'base ''CSRID)
 instance Parsable CSRID where
   parseParam = fmap CSRID . parseParam
 
-newtype CommonName = CommonName Text
+newtype CommonName = CommonName { getCN :: Text }
     deriving (Eq, Ord, Data, Typeable, Show, ToJSON)
 
 $(deriveSafeCopy 0 'base ''CommonName)
@@ -38,7 +38,7 @@ newtype OrganizationName = OrganizationName Text
 
 $(deriveSafeCopy 0 'base ''OrganizationName)
 
-newtype RequestingHost = RequestingHost Text
+newtype RequestingHost = RequestingHost { getHost :: Text }
     deriving (Eq, Ord, Data, Typeable, Show, ToJSON)
 
 $(deriveSafeCopy 0 'base ''RequestingHost)
