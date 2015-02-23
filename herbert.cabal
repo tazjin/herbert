@@ -46,6 +46,7 @@ library
                   Herbert
                   Server
                   Storage
+                  Notify
 
 executable herbert-bin
   main-is: Main.hs
