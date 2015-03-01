@@ -70,6 +70,11 @@ rejectCSR csrId = changeCSRStatus csrId Rejected
 setSignedCSR :: CSRID -> CertID -> Update HerbertState (Maybe CSR)
 setSignedCSR csrId certId = changeCSRStatus csrId $ Signed certId
 
+deleteCSR :: CSRID -> Update HerbertState ()
+deleteCSR csrId = do
+  state <- get
+  put $ state & signingRequests .~ (deleteIx csrId (state ^. signingRequests))
+
 -- | Returns the CA with the next serial number.
 getNextSerialNumber :: Update HerbertState CertificateAuthority
 getNextSerialNumber = do
@@ -106,14 +111,23 @@ listCSRByStatus status = do
     let requests = (state ^. signingRequests) @= status
     return $ IxSet.toDescList (Proxy :: Proxy UTCTime) requests
 
+-- | List expired CSRs (CSRs that have been rejected for > 2 weeks)
+listExpiredCSR :: UTCTime -> Query HerbertState [CSRID]
+listExpiredCSR cutoff = do
+  state <- ask
+  let requests = (state ^. signingRequests) @= Rejected @< cutoff
+  return $ map (^. requestId) $ IxSet.toList requests
+
 $(makeAcidic ''HerbertState
   [ 'insertCSR
   , 'insertCertificate
   , 'rejectCSR
   , 'setSignedCSR
+  , 'deleteCSR
   , 'getNextSerialNumber
   , 'retrieveCSR
   , 'retrieveCert
   , 'retrieveCA
   , 'listCSR
-  , 'listCSRByStatus ])
+  , 'listCSRByStatus
+  , 'listExpiredCSR ])

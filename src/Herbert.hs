@@ -10,6 +10,7 @@ import           Control.Lens
 import           Data.Acid
 import           Data.Acid.Local     (createCheckpointAndClose)
 import qualified Data.Text.IO        as TIO
+import           Data.Time
 import           OpenSSL
 import           OpenSSL.EVP.PKey
 import           OpenSSL.PEM
@@ -54,6 +55,19 @@ loadState :: Config
           -> IO AppState
 loadState config = openLocalStateFrom (config ^. stateDir) . emptyState
 
+getExpiredCutoff :: IO UTCTime
+getExpiredCutoff = fmap subtractFortnight getCurrentTime
+  where
+    subtractFortnight (UTCTime day time) =
+      UTCTime (ModifiedJulianDay $ (toModifiedJulianDay day - 14)) time
+
+deleteExpiredCSR :: AppState -> IO AppState
+deleteExpiredCSR state = do
+  cutoff <- getExpiredCutoff
+  expiredList <- query state $ ListExpiredCSR cutoff
+  mapM (update state . DeleteCSR) expiredList
+  return state
+
 runHerbert :: Config
            -> SerialNumber -- ^ CA serial number (only used on CA import)
            -> IO ()
@@ -63,4 +77,4 @@ runHerbert config caSerial = do
   let ca = CA caSerial crt
   bracket (loadState config ca)
           createCheckpointAndClose
-          (server config key)
+          (\state -> deleteExpiredCSR state >>= server config key)
